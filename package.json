@@ -1,0 +1,30 @@
+{
+  "name": "broadcast_server",
+  "version": "1.0.0",
+  "description": "A simple real-time broadcast server using WebSockets.",
+  "main": "cli.js",
+  "keywords": [
+    "broadcast",
+    "server",
+    "express",
+    "nodejs"
+  ],
+  "author": "",
+  "license": "MIT",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "commander": "^11.0.0",
+    "dotenv": "^16.0.0",
+    "socket.io": "^4.7.0",
+    "socket.io-client": "^4.7.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0"
+  },
+  "bin": {
+    "broadcast-server": "./cli.js"
+  }
+}
