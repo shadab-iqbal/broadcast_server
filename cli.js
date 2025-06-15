@@ -33,6 +33,7 @@ program
 
     // WebSocket connection handling
     let clientCounter = 0;
+    const messageHistory = []; // Array to store all messages with sender info
 
     // Listen for new client connections
     // which will be triggered from the line
@@ -45,15 +46,28 @@ program
 
       console.log(`\n[INFO] ${clientId} connected (${socket.id})\n`);
 
+      // Send message history to the newly connected client
+      if (messageHistory.length > 0) {
+        socket.emit("messageHistory", messageHistory);
+      }
+
       // Listen for messages from this client
       socket.on("sendMessage", (data) => {
         console.log(`[INFO] Message from ${clientId}: ${data}`);
-        // Broadcast message to all other clients (excluding sender)
-        // Includes sender ID so receivers know who sent the message
-        socket.broadcast.emit("receiveMessage", {
+
+        // Create message object with timestamp
+        const messageObj = {
           senderId: clientId,
           message: data,
-        });
+          timestamp: new Date().toISOString(),
+        };
+
+        // Save message to history
+        messageHistory.push(messageObj);
+
+        // Broadcast message to all other clients (excluding sender)
+        // Includes sender ID so receivers know who sent the message
+        socket.broadcast.emit("receiveMessage", messageObj);
       });
 
       socket.on("disconnect", () => {
@@ -99,8 +113,29 @@ program
         prompt: "> ",
       });
 
-      // Show the prompt using '>'
-      rl.prompt();
+      // Track if we've received message history
+      let historyReceived = false;
+
+      // Handle message history when it arrives
+      socket.on("messageHistory", (history) => {
+        historyReceived = true;
+        if (history.length > 0) {
+          console.log("📜 Message History:");
+          history.forEach((msg) => {
+            console.log(`📢 [${msg.senderId}]: ${msg.message}`);
+          });
+          console.log(""); // Empty line for separation
+        }
+        // Show prompt after displaying history
+        rl.prompt();
+      });
+
+      // If no history is received within 100ms, show prompt
+      setTimeout(() => {
+        if (!historyReceived) {
+          rl.prompt();
+        }
+      }, 100);
 
       // Listen for user input
       rl.on("line", (input) => {
